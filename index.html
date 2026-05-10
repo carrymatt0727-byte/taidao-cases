@@ -11,81 +11,125 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="logo-container">
-            <div class="logo-icon">
-                <i data-lucide="scale"></i>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-overlay">
+        <div class="login-card">
+            <div class="login-logo">
+                <i data-lucide="scale" size="40"></i>
             </div>
-            <div class="logo-text">
-                <h1>台島地檢</h1>
-                <p>案件整合資訊系統 v2.0</p>
-            </div>
-        </div>
-
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <a class="nav-link active" onclick="switchView('dashboard')">
-                    <i data-lucide="layout-dashboard"></i>
-                    <span>儀表板總覽</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="switchView('cases')">
-                    <i data-lucide="folder-kanban"></i>
-                    <span>案件管理</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="switchView('documents')">
-                    <i data-lucide="file-text"></i>
-                    <span>文書系統</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="switchView('analytics')">
-                    <i data-lucide="bar-chart-3"></i>
-                    <span>數據統計</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="switchView('settings')">
-                    <i data-lucide="settings"></i>
-                    <span>系統設定</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="nav-footer" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--card-border);">
-            <a class="nav-link" style="color: var(--danger)">
-                <i data-lucide="log-out"></i>
-                <span>安全登出</span>
-            </a>
-        </div>
-    </aside>
-
-    <main class="main-layout">
-        <header class="top-bar">
-            <div class="search-box">
-                <i data-lucide="search" size="18" style="color: var(--text-muted)"></i>
-                <input type="text" placeholder="搜尋案號、被告姓名、案由...">
-            </div>
-
-            <div class="user-profile">
-                <div style="text-align: right">
-                    <div style="font-weight: 600; font-size: 0.9rem;">陳大文 檢察官</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">刑事部 第三偵查組</div>
+            <h1>台島地檢系統</h1>
+            <p>請輸入您的憑證以存取案件資料庫</p>
+            
+            <div id="login-error" class="login-error">帳號或密碼錯誤，請重新輸入。</div>
+            
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>公務帳號</label>
+                    <input type="text" name="username" id="login-username" required placeholder="帳號名稱">
                 </div>
-                <div class="avatar"></div>
-                <i data-lucide="bell" style="cursor: pointer; color: var(--text-muted)"></i>
-            </div>
-        </header>
+                <div class="form-group">
+                    <label>密碼</label>
+                    <input type="password" name="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem;">登入系統</button>
+            </form>
 
-        <section id="app-content" class="content-area">
-            <!-- Content will be injected here via app.js -->
-        </section>
-    </main>
+            <div style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted);">
+                此為司法公務系統，未經授權禁止存取。<br>
+                測試帳號：head, spokesman, admin, prosecutor, investigator, clerk
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Root -->
+    <div id="app-root" style="display: none; width: 100%; height: 100vh;">
+        <div style="display: flex; width: 100%; height: 100%;">
+            <aside class="sidebar">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i data-lucide="scale"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>台島地檢</h1>
+                        <p>案件整合資訊系統 v2.0</p>
+                    </div>
+                </div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a class="nav-link active" onclick="switchView('dashboard')">
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>儀表板總覽</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="switchView('cases')">
+                            <i data-lucide="folder-kanban"></i>
+                            <span>案件管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="switchView('analytics')">
+                            <i data-lucide="bar-chart-3"></i>
+                            <span>數據統計</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="switchView('settings')">
+                            <i data-lucide="settings"></i>
+                            <span>系統設定</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="nav-footer" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--card-border);">
+                    <a class="nav-link" style="color: var(--danger)" onclick="logout()">
+                        <i data-lucide="log-out"></i>
+                        <span>安全登出</span>
+                    </a>
+                </div>
+            </aside>
+
+            <main class="main-layout">
+                <header class="top-bar">
+                    <div class="search-box">
+                        <i data-lucide="search" size="18" style="color: var(--text-muted)"></i>
+                        <input type="text" placeholder="搜尋案號、被告姓名、案由...">
+                    </div>
+
+                    <div class="user-profile">
+                        <div style="text-align: right">
+                            <div id="user-name" style="font-weight: 600; font-size: 0.9rem;">未登入</div>
+                            <div id="user-role" style="font-size: 0.75rem; color: var(--text-muted);">請先登入</div>
+                        </div>
+                        <div class="avatar"></div>
+                        <div style="position: relative;">
+                            <i data-lucide="bell" style="cursor: pointer; color: var(--text-muted)" onclick="toggleNotifications()"></i>
+                            <div id="notif-badge" class="notification-badge" style="display: none;">0</div>
+                        </div>
+                    </div>
+                </header>
+
+                <div id="notification-dropdown" class="notification-dropdown">
+                    <div style="font-weight: 600; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem;">系統通知</div>
+                    <div id="notification-list">
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1rem;">目前暫無通知</div>
+                    </div>
+                </div>
+
+                <section id="app-content" class="content-area">
+                    <!-- Content will be injected here via app.js -->
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Add Case Modal -->
     <div id="case-modal" class="modal-overlay">
@@ -110,9 +154,12 @@
                 <div class="form-group">
                     <label>當前狀態</label>
                     <select name="status">
-                        <option value="active">偵辦中</option>
-                        <option value="pending">待處理</option>
-                        <option value="closed">已結案</option>
+                        <option value="accepted">已受理</option>
+                        <option value="investigating">偵查中</option>
+                        <option value="indicted">起訴</option>
+                        <option value="not_prosecuted">不起訴</option>
+                        <option value="deferred">緩起訴</option>
+                        <option value="awaiting_trial">待審判</option>
                     </select>
                 </div>
                 <div class="modal-actions">
