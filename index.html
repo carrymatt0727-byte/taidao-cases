@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台島地方檢察署 - 案件整合系統</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <i data-lucide="scale"></i>
+            </div>
+            <div class="logo-text">
+                <h1>台島地檢</h1>
+                <p>案件整合資訊系統 v2.0</p>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link active" onclick="switchView('dashboard')">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>儀表板總覽</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="switchView('cases')">
+                    <i data-lucide="folder-kanban"></i>
+                    <span>案件管理</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="switchView('documents')">
+                    <i data-lucide="file-text"></i>
+                    <span>文書系統</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="switchView('analytics')">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>數據統計</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="switchView('settings')">
+                    <i data-lucide="settings"></i>
+                    <span>系統設定</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-footer" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--card-border);">
+            <a class="nav-link" style="color: var(--danger)">
+                <i data-lucide="log-out"></i>
+                <span>安全登出</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-layout">
+        <header class="top-bar">
+            <div class="search-box">
+                <i data-lucide="search" size="18" style="color: var(--text-muted)"></i>
+                <input type="text" placeholder="搜尋案號、被告姓名、案由...">
+            </div>
+
+            <div class="user-profile">
+                <div style="text-align: right">
+                    <div style="font-weight: 600; font-size: 0.9rem;">陳大文 檢察官</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">刑事部 第三偵查組</div>
+                </div>
+                <div class="avatar"></div>
+                <i data-lucide="bell" style="cursor: pointer; color: var(--text-muted)"></i>
+            </div>
+        </header>
+
+        <section id="app-content" class="content-area">
+            <!-- Content will be injected here via app.js -->
+        </section>
+    </main>
+
+    <!-- Add Case Modal -->
+    <div id="case-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="font-size: 1.25rem;">手動新增案件</h2>
+                <i data-lucide="x" style="cursor: pointer; color: var(--text-muted);" onclick="closeAddModal()"></i>
+            </div>
+            <form onsubmit="handleAddCase(event)">
+                <div class="form-group">
+                    <label>案號 (例如: 113-偵-00001)</label>
+                    <input type="text" name="caseId" required placeholder="請輸入案號">
+                </div>
+                <div class="form-group">
+                    <label>被告姓名</label>
+                    <input type="text" name="defendant" required placeholder="請輸入被告姓名">
+                </div>
+                <div class="form-group">
+                    <label>涉嫌案由</label>
+                    <input type="text" name="charge" required placeholder="請輸入罪名">
+                </div>
+                <div class="form-group">
+                    <label>當前狀態</label>
+                    <select name="status">
+                        <option value="active">偵辦中</option>
+                        <option value="pending">待處理</option>
+                        <option value="closed">已結案</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" style="flex: 1" onclick="closeAddModal()">取消</button>
+                    <button type="submit" class="btn-primary" style="flex: 2">儲存案件</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
