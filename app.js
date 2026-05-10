@@ -80,10 +80,10 @@ function renderCaseTableWithApproval(data) {
 }
 
 function submitForApproval(caseId) {
-    const c = mockCases.find(x => x.id === caseId);
     if (approvals.find(a => a.caseId === caseId && a.status === 'pending')) {
         alert('該案件已在審核中'); return;
     }
+    const c = mockCases.find(x => x.id === caseId);
     const app = { id: Date.now(), caseId: caseId, defendant: c.defendant, prosecutor: c.prosecutor, status: 'pending', time: new Date().toLocaleString() };
     approvals.unshift(app);
     localStorage.setItem('taidao_approvals', JSON.stringify(approvals));
@@ -93,41 +93,56 @@ function submitForApproval(caseId) {
 
 function renderApprovalTable() {
     const data = currentUser.role === '檢察長' ? approvals.filter(a => a.status === 'pending') : approvals;
-    if (data.length === 0) return `<div style="text-align: center; color: var(--text-muted);">暫無審核項目</div>`;
+    if (data.length === 0) return `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">暫無審核項目</div>`;
     return `<table><thead><tr><th>案號</th><th>承辦人</th><th>送審時間</th><th>狀態</th><th>操作</th></tr></thead><tbody>${data.map(a => `
         <tr>
-            <td style="font-family: monospace;">${a.caseId}</td><td>${a.prosecutor}</td><td>${a.time}</td>
+            <td style="font-family: monospace; font-weight: 600;">${a.caseId}</td><td>${a.prosecutor}</td><td>${a.time}</td>
             <td><span class="status-pill status-${a.status === 'pending' ? 'investigating' : (a.status === 'approved' ? 'not_prosecuted' : 'indicted')}">${a.status === 'pending' ? '待審核' : (a.status === 'approved' ? '已核准' : '已退回')}</span></td>
             <td>
                 ${currentUser.role === '檢察長' && a.status === 'pending' ? `
-                    <button class="btn-primary" style="font-size: 0.75rem; padding: 4px 8px; background: var(--success);" onclick="processApproval(${a.id}, 'approved')">核准</button>
-                    <button class="btn-primary" style="font-size: 0.75rem; padding: 4px 8px; background: var(--danger);" onclick="processApproval(${a.id}, 'rejected')">退回</button>
+                    <button class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px; background: var(--success); border: none; cursor: pointer; border-radius: 6px;" onclick="processApproval(${a.id}, 'approved')">核准</button>
+                    <button class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px; background: var(--danger); border: none; cursor: pointer; border-radius: 6px;" onclick="processApproval(${a.id}, 'rejected')">退回</button>
                 ` : '-'}
             </td>
         </tr>`).join('')}</tbody></table>`;
 }
 
-function processApproval(id, result) {
-    const app = approvals.find(x => x.id === id);
-    app.status = result;
+window.processApproval = function(id, result) {
+    const appIndex = approvals.findIndex(x => x.id == id);
+    if (appIndex === -1) return;
+    
+    approvals[appIndex].status = result;
+    
+    // If approved, update the actual case status to 'investigating' (偵查中)
+    if (result === 'approved') {
+        const caseIndex = mockCases.findIndex(c => c.id === approvals[appIndex].caseId);
+        if (caseIndex !== -1) {
+            mockCases[caseIndex].status = 'investigating';
+            localStorage.setItem('taidao_cases', JSON.stringify(mockCases));
+        }
+    }
+    
     localStorage.setItem('taidao_approvals', JSON.stringify(approvals));
-    notifyAll(`案件 ${app.caseId} 審核結果：${result === 'approved' ? '核准' : '退回'}`);
+    notifyAll(`案件 ${approvals[appIndex].caseId} 審核結果：${result === 'approved' ? '核准' : '退回'}`);
     switchView('approvals');
-}
+};
 
 // Search Logic
-function handleSearch(term) {
+window.handleSearch = function(term) {
     currentSearchTerm = term.toLowerCase();
-    const currentViewName = document.querySelector('.nav-link.active').getAttribute('onclick').match(/'(.*?)'/)[1];
+    const activeLink = document.querySelector('.nav-link.active');
+    if (!activeLink) return;
+    const currentViewName = activeLink.getAttribute('onclick').match(/'(.*?)'/)[1];
     if (['dashboard', 'cases'].includes(currentViewName)) switchView(currentViewName);
-}
+};
+
 function getFilteredCases() {
     if (!currentSearchTerm) return mockCases;
     return mockCases.filter(c => c.id.toLowerCase().includes(currentSearchTerm) || c.defendant.toLowerCase().includes(currentSearchTerm) || c.charge.toLowerCase().includes(currentSearchTerm));
 }
 
 // Authentication
-function handleLogin(event) {
+window.handleLogin = function(event) {
     event.preventDefault();
     const user = document.getElementById('login-username').value;
     const pass = document.getElementById('login-password').value;
@@ -139,8 +154,9 @@ function handleLogin(event) {
         document.getElementById('user-role').textContent = currentUser.role;
         switchView('dashboard');
     } else { document.getElementById('login-error').style.display = 'block'; }
-}
-function logout() { currentUser = null; location.reload(); }
+};
+
+window.logout = function() { currentUser = null; location.reload(); };
 
 // Calendar
 function initCalendar() {
@@ -152,9 +168,9 @@ function initCalendar() {
     });
     calendar.render();
 }
-function openCourtModal() { document.getElementById('court-modal').style.display = 'flex'; }
-function closeCourtModal() { document.getElementById('court-modal').style.display = 'none'; }
-function handleAddCourtDate(event) {
+window.openCourtModal = function() { document.getElementById('court-modal').style.display = 'flex'; };
+window.closeCourtModal = function() { document.getElementById('court-modal').style.display = 'none'; };
+window.handleAddCourtDate = function(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
     const session = { id: Date.now(), caseId: formData.get('caseId'), room: formData.get('room'), date: formData.get('date'), time: formData.get('time'), prosecutor: currentUser.name };
@@ -163,7 +179,7 @@ function handleAddCourtDate(event) {
     notifyAll(`安排新庭期：${session.caseId}`);
     closeCourtModal();
     switchView('calendar');
-}
+};
 
 // Global UI
 function notifyAll(msg) {
@@ -175,7 +191,7 @@ function showToast(msg) {
     const c = document.getElementById('toast-container');
     const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = `<i data-lucide="info"></i><span>${msg}</span>`;
     c.appendChild(t); lucide.createIcons();
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 4000);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 3500);
 }
 function updateNotifBadge() {
     const b = document.getElementById('notif-badge');
@@ -189,19 +205,19 @@ function getStatusLabel(s) {
     const l = { accepted: '已受理', investigating: '偵查中', indicted: '起訴', not_prosecuted: '不起訴', deferred: '緩起訴', awaiting_trial: '待審判' };
     return l[s] || s;
 }
-function openAddModal() { document.getElementById('case-modal').style.display = 'flex'; }
-function closeAddModal() { document.getElementById('case-modal').style.display = 'none'; }
-function handleAddCase(event) {
+window.openAddModal = function() { document.getElementById('case-modal').style.display = 'flex'; };
+window.closeAddModal = function() { document.getElementById('case-modal').style.display = 'none'; };
+window.handleAddCase = function(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const newCase = { id: formData.get('caseId'), defendant: formData.get('defendant'), charge: formData.get('charge'), status: formData.get('status'), date: new Date().toISOString().split('T')[0], prosecutor: currentUser.name };
+    const newCase = { id: formData.get('caseId'), defendant: formData.get('defendant'), charge: formData.get('charge'), status: 'accepted', date: new Date().toISOString().split('T')[0], prosecutor: currentUser.name };
     mockCases.unshift(newCase);
     localStorage.setItem('taidao_cases', JSON.stringify(mockCases));
     notifyAll(`新增案件：${newCase.id}`);
     closeAddModal();
     switchView('dashboard');
-}
-function switchView(view) {
+};
+window.switchView = function(view) {
     const content = document.getElementById('app-content');
     document.querySelectorAll('.nav-link').forEach(l => { l.classList.remove('active'); if (l.getAttribute('onclick')?.includes(view)) l.classList.add('active'); });
     if (views[view]) {
@@ -210,13 +226,13 @@ function switchView(view) {
         if (view === 'calendar') setTimeout(initCalendar, 100);
         if (view === 'analytics') setTimeout(initCharts, 100);
     }
-}
-function toggleNotifications() {
+};
+window.toggleNotifications = function() {
     const d = document.getElementById('notification-dropdown');
     d.style.display = d.style.display === 'block' ? 'none' : 'block';
     if (d.style.display === 'block') {
         document.getElementById('notification-list').innerHTML = notifications.map(n => `<div class="notification-item"><b>${n.sender}</b>: ${n.message}<br><small>${n.time}</small></div>`).join('');
     }
-}
-function clearAllData() { if (confirm('重置系統？')) { localStorage.clear(); location.reload(); } }
+};
+window.clearAllData = function() { if (confirm('重置系統？')) { localStorage.clear(); location.reload(); } };
 window.onload = () => { lucide.createIcons(); };

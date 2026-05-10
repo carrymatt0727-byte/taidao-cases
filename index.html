@@ -115,11 +115,10 @@
                 <div class="form-group"><label>案號</label><input type="text" name="caseId" required placeholder="113-偵-00001"></div>
                 <div class="form-group"><label>被告姓名</label><input type="text" name="defendant" required></div>
                 <div class="form-group"><label>涉嫌案由</label><input type="text" name="charge" required></div>
-                <div class="form-group"><label>當前狀態</label>
-                    <select name="status">
-                        <option value="accepted">已受理</option><option value="investigating">偵查中</option>
-                        <option value="indicted">起訴</option><option value="not_prosecuted">不起訴</option>
-                        <option value="deferred">緩起訴</option><option value="awaiting_trial">待審判</option>
+                <div class="form-group">
+                    <label>當前狀態</label>
+                    <select name="status" readonly style="background: rgba(255,255,255,0.02); cursor: not-allowed;">
+                        <option value="accepted">已受理</option>
                     </select>
                 </div>
                 <div class="modal-actions">
