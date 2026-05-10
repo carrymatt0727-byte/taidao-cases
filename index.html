@@ -13,6 +13,20 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <style>
+        #app-root { display: none; }
+        /* FullCalendar Customization */
+        .fc { --fc-border-color: rgba(255,255,255,0.1); --fc-page-bg-color: transparent; height: 100%; }
+        .fc-toolbar-title { font-size: 1.2rem !important; font-weight: 700; color: white; }
+        .fc-daygrid-day-number { color: var(--text-muted); text-decoration: none !important; }
+        .fc-col-header-cell-cushion { color: var(--text-muted); font-weight: 500; text-decoration: none !important; }
+        .fc-event { cursor: pointer; border-radius: 8px; padding: 4px 8px; background-color: var(--accent-color) !important; border: none !important; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .fc-day-today { background: rgba(59, 130, 246, 0.05) !important; }
+        .fc-button-primary { background-color: var(--secondary-bg) !important; border: 1px solid var(--card-border) !important; }
+        .fc-button-primary:hover { background-color: var(--accent-color) !important; }
+    </style>
 </head>
 <body>
     <!-- Login Screen -->
@@ -23,9 +37,7 @@
             </div>
             <h1>台島地檢系統</h1>
             <p>請輸入您的憑證以存取案件資料庫</p>
-            
-            <div id="login-error" class="login-error">帳號或密碼錯誤，請重新輸入。</div>
-            
+            <div id="login-error" class="login-error">帳號或密碼錯誤</div>
             <form class="login-form" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>公務帳號</label>
@@ -37,10 +49,9 @@
                 </div>
                 <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem;">登入系統</button>
             </form>
-
             <div style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted);">
                 此為司法公務系統，未經授權禁止存取。<br>
-                測試帳號：head, spokesman, admin, prosecutor, investigator, clerk
+                管理員：楊顯凡 (head), 王宇川 (spokesman), 江睿哲 (admin), 林祖媽 (prosecutor)
             </div>
         </div>
     </div>
@@ -50,47 +61,19 @@
         <div style="display: flex; width: 100%; height: 100%;">
             <aside class="sidebar">
                 <div class="logo-container">
-                    <div class="logo-icon">
-                        <i data-lucide="scale"></i>
-                    </div>
-                    <div class="logo-text">
-                        <h1>台島地檢</h1>
-                        <p>案件整合資訊系統 v2.0</p>
-                    </div>
+                    <div class="logo-icon"><i data-lucide="scale"></i></div>
+                    <div class="logo-text"><h1>台島地檢</h1><p>案件整合資訊系統 v2.0</p></div>
                 </div>
-
                 <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a class="nav-link active" onclick="switchView('dashboard')">
-                            <i data-lucide="layout-dashboard"></i>
-                            <span>儀表板總覽</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="switchView('cases')">
-                            <i data-lucide="folder-kanban"></i>
-                            <span>案件管理</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="switchView('analytics')">
-                            <i data-lucide="bar-chart-3"></i>
-                            <span>數據統計</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="switchView('settings')">
-                            <i data-lucide="settings"></i>
-                            <span>系統設定</span>
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link active" onclick="switchView('dashboard')"><i data-lucide="layout-dashboard"></i><span>儀表板總覽</span></a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchView('cases')"><i data-lucide="folder-kanban"></i><span>案件管理</span></a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchView('calendar')"><i data-lucide="calendar"></i><span>庭期日曆</span></a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchView('approvals')"><i data-lucide="check-square"></i><span>案件審核</span></a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchView('analytics')"><i data-lucide="bar-chart-3"></i><span>數據統計</span></a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchView('settings')"><i data-lucide="settings"></i><span>系統設定</span></a></li>
                 </ul>
-
                 <div class="nav-footer" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--card-border);">
-                    <a class="nav-link" style="color: var(--danger)" onclick="logout()">
-                        <i data-lucide="log-out"></i>
-                        <span>安全登出</span>
-                    </a>
+                    <a class="nav-link" style="color: var(--danger)" onclick="logout()"><i data-lucide="log-out"></i><span>安全登出</span></a>
                 </div>
             </aside>
 
@@ -98,9 +81,8 @@
                 <header class="top-bar">
                     <div class="search-box">
                         <i data-lucide="search" size="18" style="color: var(--text-muted)"></i>
-                        <input type="text" placeholder="搜尋案號、被告姓名、案由...">
+                        <input type="text" id="global-search" placeholder="搜尋案號、被告、案由..." oninput="handleSearch(this.value)">
                     </div>
-
                     <div class="user-profile">
                         <div style="text-align: right">
                             <div id="user-name" style="font-weight: 600; font-size: 0.9rem;">未登入</div>
@@ -113,17 +95,11 @@
                         </div>
                     </div>
                 </header>
-
                 <div id="notification-dropdown" class="notification-dropdown">
                     <div style="font-weight: 600; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem;">系統通知</div>
-                    <div id="notification-list">
-                        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1rem;">目前暫無通知</div>
-                    </div>
+                    <div id="notification-list"></div>
                 </div>
-
-                <section id="app-content" class="content-area">
-                    <!-- Content will be injected here via app.js -->
-                </section>
+                <section id="app-content" class="content-area"></section>
             </main>
         </div>
     </div>
@@ -131,35 +107,19 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Add Case Modal -->
+    <!-- Modals -->
     <div id="case-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 style="font-size: 1.25rem;">手動新增案件</h2>
-                <i data-lucide="x" style="cursor: pointer; color: var(--text-muted);" onclick="closeAddModal()"></i>
-            </div>
+            <div class="modal-header"><h2>手動新增案件</h2><i data-lucide="x" onclick="closeAddModal()" style="cursor: pointer"></i></div>
             <form onsubmit="handleAddCase(event)">
-                <div class="form-group">
-                    <label>案號 (例如: 113-偵-00001)</label>
-                    <input type="text" name="caseId" required placeholder="請輸入案號">
-                </div>
-                <div class="form-group">
-                    <label>被告姓名</label>
-                    <input type="text" name="defendant" required placeholder="請輸入被告姓名">
-                </div>
-                <div class="form-group">
-                    <label>涉嫌案由</label>
-                    <input type="text" name="charge" required placeholder="請輸入罪名">
-                </div>
-                <div class="form-group">
-                    <label>當前狀態</label>
+                <div class="form-group"><label>案號</label><input type="text" name="caseId" required placeholder="113-偵-00001"></div>
+                <div class="form-group"><label>被告姓名</label><input type="text" name="defendant" required></div>
+                <div class="form-group"><label>涉嫌案由</label><input type="text" name="charge" required></div>
+                <div class="form-group"><label>當前狀態</label>
                     <select name="status">
-                        <option value="accepted">已受理</option>
-                        <option value="investigating">偵查中</option>
-                        <option value="indicted">起訴</option>
-                        <option value="not_prosecuted">不起訴</option>
-                        <option value="deferred">緩起訴</option>
-                        <option value="awaiting_trial">待審判</option>
+                        <option value="accepted">已受理</option><option value="investigating">偵查中</option>
+                        <option value="indicted">起訴</option><option value="not_prosecuted">不起訴</option>
+                        <option value="deferred">緩起訴</option><option value="awaiting_trial">待審判</option>
                     </select>
                 </div>
                 <div class="modal-actions">
@@ -170,10 +130,22 @@
         </div>
     </div>
 
+    <div id="court-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>安排庭期</h2><i data-lucide="x" onclick="closeCourtModal()" style="cursor: pointer"></i></div>
+            <form onsubmit="handleAddCourtDate(event)">
+                <div class="form-group"><label>案號</label><input type="text" name="caseId" required></div>
+                <div class="form-group"><label>庭別</label><input type="text" name="room" required placeholder="偵查庭"></div>
+                <div class="form-group"><label>開庭日期</label><input type="date" name="date" required id="court-date-input"></div>
+                <div class="form-group"><label>開庭時間</label><input type="time" name="time" required></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" style="flex: 1" onclick="closeCourtModal()">取消</button>
+                    <button type="submit" class="btn-primary" style="flex: 2">儲存庭期</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="app.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-    </script>
 </body>
 </html>
