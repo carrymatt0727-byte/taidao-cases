@@ -253,6 +253,7 @@ td {
 }
 
 .status-accepted { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+.status-rejected { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 .status-investigating { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
 .status-indicted { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 .status-not_prosecuted { background: rgba(16, 185, 129, 0.2); color: #34d399; }
